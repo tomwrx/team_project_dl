@@ -1,7 +1,5 @@
 # Privacy Masker — ML Engineer's Working Repo
 
-# Privacy Masker — Team Project
-
 ## Repository Structure
 | File | Description |
 |------|-------------|
