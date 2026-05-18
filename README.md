@@ -1,5 +1,37 @@
 # Privacy Masker — ML Engineer's Working Repo
 
+# Privacy Masker — Team Project
+
+## Repository Structure
+| File | Description |
+|------|-------------|
+| `01_data_prep_final.ipynb` | Data preparation notebook (Member 1) |
+| `SCHEMA.md` | Dataset schema contract (Member 2) |
+| `README.md` | This file |
+
+## Dataset
+pii_v1 dataset is available on Google Drive:
+
+[Download pii_v1 dataset](https://drive.google.com/drive/folders/1uycS4idphBz_cZfWB8aq6zIWZTM0Trv5?usp=share_link)
+
+### Dataset Structure
+| Path | Description |
+|------|-------------|
+| `train.jsonl` | 2,916 screens |
+| `val.jsonl` | 364 screens |
+| `test.jsonl` | 365 screens |
+| `images.zip` | 1,471 MB — all PNG files zipped |
+| `images/` | Raw PNG files |
+| `eda/` | EDA plots |
+
+### Stats
+- **Total screens:** 3,645
+- **Split:** 80% train / 10% val / 10% test
+- **PII labels:** email_address, phone_number, full_name, username, account_balance, transaction_amount, address, date_of_birth
+- **Negative examples:** ~15% empty screens
+- **Validator:** OK
+
+
 ## Google Drive layout
 
 All three notebooks read from / write to the same shared folder:
