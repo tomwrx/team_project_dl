@@ -13,6 +13,7 @@ For a presentation, the app needs to be foolproof. Member 3 should build a UI wi
 * **Style Toggle:** A radio button letting the user choose between "Solid Redaction" (black boxes) or "Gaussian Blur" (looks highly professional).
 * **Pre-loaded Examples:** This is critical. Live demos always fail when you try to upload a file under pressure. M3 must pre-load 3-4 distinct UI screenshots at the bottom of the app that the judges can just click to run.
 
+Shared project link: https://drive.google.com/drive/folders/1ttyaB7asqXWYA19vKnIcCFJYDv58cXEr?usp=sharing
 ---
 
 ## 1. The Strategy: Google Colab + Gradio
