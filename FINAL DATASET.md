@@ -61,9 +61,11 @@ Screens with no PII have `"objects": []` and serve as hard negative examples (~1
 
 ---
 
-### PII Categories & Regex Rules (V5 Engine)
+### PII Categories & Regex Rules (V6 Engine)
 
 All questions are classified using compiled regex patterns matched against the question text.
+
+> **Note:** The keywords listed below represent the *primary signals* identified during n-gram analysis, but the regex patterns intentionally match a wider surface — e.g. `email` also catches phrasing like *"enter your mail"*, and `balance` catches *"current account balance"* — so actual dataset coverage is broader than the keyword list implies.
 
 | Label | Keywords / Patterns | Regex |
 |-------|--------------------|----|
@@ -92,7 +94,7 @@ All questions are classified using compiled regex patterns matched against the q
 **1. Stratified Multi-Label Splitting — "Rarest Label Heuristic"**  
 Each screen is assigned a *primary label* equal to the globally rarest PII label it contains. Screens are then grouped by primary label and split 80/10/10. This ensures rare categories (`full_name`, `account_balance`) are proportionally represented in val and test instead of being absent.
 
-**2. Precision-First Regex Engine (V5)**  
+**2. Precision-First Regex Engine (V6)**  
 Replaced broad keyword lists with compiled `REGEX_KEYWORD_MAP` patterns. High-noise keywords such as bare `"name"` and `"date"` (which caused >40% false positives in earlier versions) were removed. Only structurally unambiguous terms and bigrams are retained.
 
 **3. Biometric Compliance**  
@@ -103,7 +105,7 @@ Replaced broad keyword lists with compiled `REGEX_KEYWORD_MAP` patterns. High-no
 
 ---
 
-### Key Regex Changes — V5 Engine
+### Key Regex Changes — V6 Engine
 
 | Label | Change | Rationale |
 |-------|--------|-----------|
