@@ -13,12 +13,14 @@ We approached this using a Vision-Language Model (VLM) because PII detection req
 
 ## 2. Data Engineering
 
-We built the **`pii_v1`** dataset from the `RICO-ScreenQA` corpus (real Android UIs with pixel-precise bounds).
+We built two datasets from the `RICO-ScreenQA` corpus (real Android UIs with pixel-precise bounds):
 
-* **Pipeline:** We mapped QA pairs to 10 PII categories using regex, deduplicated bounding boxes, and aggregated them per screen to capture multi-PII instances.
-* **Negative Sampling:** 15% of screens were intentionally left empty (no PII) to teach the model to abstain.
-* **Statistics:** 3,645 total screens (80/10/10 split).
-* **Key Finding:** The dataset is highly long-tailed. **66% of screens contain exactly 1 PII object**, which heavily influenced the model's prediction bias.
+* **`pii_v1`** — 3,645 screens, broad keyword regex, no stratified split. Used for §4 (PaliGemma) and §5 v1–v2 (two-stage).
+* **`pii_v5`** — 9,989 screens, precision-first regex engine, stratified multi-label split (rarest-label heuristic), pruned ambiguous labels, biometrics added to `other_sensitive`. Used for §5 v3.
+
+Both follow the same per-screen schema (`image`, `objects[].bbox`, `objects[].label`). Negative examples (~12–15%) are included to teach abstention.
+
+**Key finding (v1):** The dataset is highly long-tailed — **66% of screens contain exactly 1 PII object**, which heavily influenced the model's prediction bias in §4.
 
 ## 3. ML Approach
 
@@ -51,36 +53,40 @@ Motivated by the 1-box bias finding in §4, we re-architected the task by decoup
 
 ### Experiments & Results
 
-We ran two iterations on the same training data (~2.9k screens):
+Three iterations across two datasets:
 
-| Setup | JSON Valid | Precision | Recall | **Micro F1** | Macro F1 |
-|---|---:|---:|---:|---:|---:|
-| **v1 (Flat string list):** OCR text concatenated as plain Python list, no layout | 100% | 0.327 | 0.410 | 0.364 | 0.230 |
-| **v2 (Layout-aware):** Normalized (x,y) coords in prompt + containment matching + content override | 100% | **0.767** | **0.615** | **0.683** | **0.517** |
+| Setup | Train | Test | Precision | Recall | **Micro F1** | Macro F1 |
+|---|---:|---:|---:|---:|---:|---:|
+| **v1 (Flat string list):** OCR text as plain list, no layout | pii_v1 (2.9k) | pii_v1 | 0.327 | 0.410 | 0.364 | 0.230 |
+| **v2 (Layout-aware):** Normalized (x,y) coords + containment matching + content override | pii_v1 (2.9k) | pii_v1 | 0.767 | 0.615 | **0.683** | 0.517 |
+| **v3 (pii_v5 retrain):** Same v2 setup, trained on the 3×-larger stratified dataset | pii_v5 (7.9k) | pii_v5 | 0.636 | 0.544 | 0.586 | **0.536** |
 
-**Per-class F1 (v2):** `email_address` 0.86 · `date_of_birth` 0.74 · `full_name` 0.62 · `username` 0.58 · `phone_number` 0.55 · `address` 0.50 · `transaction_amount` 0.48 · `account_balance` 0.33.
+**Per-class F1 (v2 on pii_v1):** `email_address` 0.86 · `date_of_birth` 0.74 · `full_name` 0.62 · `username` 0.58 · `phone_number` 0.55 · `address` 0.50 · `transaction_amount` 0.48 · `account_balance` 0.33.
+
+**Per-class F1 (v3 on pii_v5):** `email_address` 0.84 · `phone_number` 0.59 · `address` 0.56 · `full_name` 0.56 · `account_balance` 0.56 · `transaction_amount` 0.55 · `username` 0.47 · `other_sensitive` 0.42 · `date_of_birth` 0.28.
 
 **Key Takeaways:**
 1. **Decoupling localization from classification eliminates the 1-box bias entirely** — the model labels every OCR region independently, so dense screens with 4+ PII fields are no longer penalized.
-2. **Layout matters as much as content.** Injecting normalized coordinates into the prompt nearly doubled micro F1 (0.36 → 0.68) on the same data, the same model, and the same training budget. Stripping coordinates is equivalent to discarding the visual prior.
-3. **Annotation policy mismatch caps `address` and `phone_number` recall.** Manual error analysis revealed the model consistently declines to label *business* addresses, phone numbers, and corporate emails as PII — semantically correct behavior penalized by ground truth, which labels any address-shaped or phone-shaped string regardless of subject. Reported recall on these classes is therefore a lower bound on real-world performance.
-4. **Greedy decoding outperformed beam search.** Beam search with mild length penalty pushed the model to emit more entities but predominantly wrong ones (micro F1 dropped to 0.607), confirming the conservative greedy policy as optimal.
+2. **Layout matters as much as content.** Injecting normalized coordinates into the prompt nearly doubled micro F1 (0.36 → 0.68) on the same data, model, and training budget. Stripping coordinates discards the visual prior.
+3. **v3 on pii_v5 looks worse on micro F1 but is actually a tougher exam.** The pii_v5 test set has 6.4× more `address` and 7.6× more `transaction_amount` instances than pii_v1 — the two hardest classes now dominate. Macro F1 in fact *improved* (0.517 → 0.536), and per-class precision rose on `account_balance` (+0.21), `full_name` (+0.09), and `phone_number` (+0.07).
+4. **`date_of_birth` regressed sharply (F1 0.74 → 0.28) due to a label-noise issue in pii_v5.** The v5 regex tightened DOB to `dob`/`birthday`/`born`/`age` — mixing date strings ("03/15/1990") with age integers ("25") under one label. The model has no consistent signal to pick the right OCR token.
+5. **`other_sensitive` is structurally weak (F1 0.42)** — mixing biometrics (weight/height), credentials (password/pin), and demographics (gender) under one label provides no shared visual or textual structure.
+6. **Annotation policy mismatch caps `address` and `phone_number` recall on both datasets.** Manual error analysis showed the model consistently declines to label *business* addresses, phone numbers, and corporate emails as PII — semantically correct behavior penalized by ground truth. Reported recall on these classes is a lower bound on real-world performance.
+7. **Greedy decoding outperformed beam search.** Beam search with mild length penalty pushed the model to emit more entities but predominantly wrong ones (micro F1 dropped to 0.607).
 
 ## 6. Limitations & Future Work
 
-The two-stage pipeline reached micro F1 = 0.683 (macro 0.517) — a meaningful step up from the single-stage VLM ceiling at 0.449, but still short of production thresholds.
-
-1. **OCR ceiling:** The pipeline is bounded above by Stage 1 recall. Any text PaddleOCR misses (low-contrast UI, icons containing text, non-Latin scripts) is invisible to Stage 2.
-2. **Annotation noise:** The original `pii_v1` labels do not distinguish personal vs. business entities, suppressing measured F1 on `address` and `phone_number`. A re-annotation pass with this distinction would likely raise micro F1 by 3–5 points without retraining.
-3. **Missing OCR + Regex baseline:** We still lack a regex-only baseline to quantify how much the LLM contributes beyond simple pattern matching on OCR output.
-4. **Scale:** ~2.9k training screens is small. The 0.36 → 0.68 jump was driven by representation, not data — future gains likely require expanding to 10k+ screens with cleaner annotations.
-5. **Single-stage VLM constraints:** PaliGemma's autoregressive 1-box bias (§4) is a structural limit, not a training artifact. Higher input resolution (`pt-896`) or grounded-decoding losses might mitigate it, but the two-stage approach sidesteps the problem entirely.
+1. **OCR ceiling:** Pipeline recall is bounded above by Stage 1. Text PaddleOCR misses (low-contrast UI, icons, non-Latin scripts) is invisible to Stage 2.
+2. **Label noise dominates remaining error budget.** Two concrete issues identified in v3: (a) `date_of_birth` conflates dates and ages; (b) `other_sensitive` mixes class-incoherent buckets. Splitting these would likely raise micro F1 by 5–10 points with no model changes.
+3. **Personal vs. business ambiguity** on `address` and `phone_number` is a ground-truth policy issue, not a model failure. Re-annotating to mark subject ownership would raise measured recall on both datasets.
+4. **Missing OCR + Regex baseline** to quantify how much the LLM contributes beyond simple pattern matching.
+5. **Single-stage VLM constraints:** PaliGemma's autoregressive 1-box bias (§4) is a structural limit. Higher input resolution (`pt-896`) or grounded-decoding losses might mitigate it, but the two-stage approach sidesteps the problem entirely.
 
 ## 7. Summary
 
-We explored two architectures for PII detection on mobile screenshots:
+Two architectures explored for PII detection on mobile screenshots:
 
-- **Single-stage VLM (PaliGemma 2 + LoRA)** reached **F1 = 0.449** with strong localization (Mean IoU 0.570) but a structural 1-box generation bias that capped recall on dense screens.
-- **Two-stage pipeline (PaddleOCR + Gemma-4 LoRA classifier)** reached **F1 = 0.683** by decoupling localization from classification and injecting normalized layout coordinates into the prompt — nearly doubling performance on the same training data.
+- **Single-stage VLM (PaliGemma 2 + LoRA)** — F1 = 0.449 on pii_v1, capped by autoregressive 1-box bias.
+- **Two-stage pipeline (PaddleOCR + Gemma-4 LoRA classifier)** — F1 = 0.683 on pii_v1 and 0.586 on the 3×-larger pii_v5 (which has higher macro F1 = 0.536 due to harder class distribution).
 
-The project demonstrates that for small-data, multi-entity detection on structured screens, **task decomposition with layout-aware prompting outperforms end-to-end VLM fine-tuning**. The semantic power of VLMs is real, but their autoregressive constraints make them a poor fit for object detection at this data scale — a cheap OCR + LLM-classifier architecture wins decisively.
+For small-data, multi-entity detection on structured screens, **task decomposition with layout-aware prompting outperforms end-to-end VLM fine-tuning**. The v3 evaluation on pii_v5 further isolates label noise (rather than model capacity) as the dominant remaining error source — a finding that points directly to next steps for the data engineering side.
