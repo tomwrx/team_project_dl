@@ -33,3 +33,10 @@ pii_v2 dataset is publicly available on Google Drive:
 | `date_of_birth` | P2 |
 | `other_sensitive` | P2 |
 
+## Version history
+| Version | Screens | Notes |
+|---------|---------|-------|
+| pii_v1 | 3,645 | train only, baseline KEYWORD_MAP |
+| pii_v2 | 4,549 | added val+test splits (+25% screens) which were not included in first stream (69k out of 89k scanned), same baseline KEYWORD_MAP |
+| pii_v3 | 10,645 | expanded KEYWORD_MAP keywords — NOT UPLOADED, too many false positives |
+| pii_v4 | {len(final_entries)} | data-driven KEYWORD_MAP, removed keywords with >40% non-PII rate, same labels with updated KEYWORD_MAP |
