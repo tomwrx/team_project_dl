@@ -50,16 +50,10 @@ pii_v2 dataset is publicly available on Google Drive:
 | `phone_number` | `phone`, `mobile`, `call` | `contact`, `cell` | — |
 | `account_balance` | `balance`, `net worth` | `amount`, `money`, `currency` | — |
 | `transaction_amount` | `transaction`, `payment`, `charge`, `purchase` | `price`, `cost`, `much`, `fee`, `order` | — |
-| `full_name` | `first/last/full/display name` | `full`, `who`, `author`, `person` | `name` (62.7% non-PII) |
+| `full_name` | `first name`, `last name`, `full name`, `display name` | `full`, `who`, `author`, `person` | `name` alone (62.7% non-PII) |
 | `username` | `username`, `user id`, `login name` | `user`, `account`, `sign`, `log`, `password`, `login` | — |
 | `account_number` | `account number`, `card number` | `card`, `iban` | — |
 | `address` | `address`, `street`, `zip`, `postal` | `location`, `country`, `city`, `state`, `destination` | — |
 | `date_of_birth` | `date of birth`, `dob`, `birthday`, `born` | `date`, `age`, `year`, `month` | — |
 | `id_number` | `ssn`, `social security`, `passport` | `social`, `passport`, `code`, `id` | — |
 | `other_sensitive` | — | `gender`, `pin`, `passcode` | — |
-
-**Removed from V4 due to >40% non-PII rate:**
-- `name` (62.7%) — matched "app name", "song name", "comic name"
-- `total` (75.2%) — matched "total chapters", "total slides"
-- `number` (58.2%) — matched "number of likes", "number of slides"
-- `paid` (62.3%) — matched "free or paid"
