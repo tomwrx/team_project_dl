@@ -61,7 +61,7 @@ Screens with no PII have `"objects": []` and serve as hard negative examples (~1
 
 ---
 
-### PII Categories & Regex Rules (V6 Engine)
+### PII Categories & Regex Rules 
 
 All questions are classified using compiled regex patterns matched against the question text.
 
