@@ -40,3 +40,26 @@ pii_v2 dataset is publicly available on Google Drive:
 | pii_v2 | 4,549 | added val+test splits (+25% screens) which were not included in first stream (69k out of 89k scanned), same baseline KEYWORD_MAP |
 | pii_v3 | 10,645 | expanded KEYWORD_MAP keywords — NOT UPLOADED, too many false positives |
 | pii_v4 | {len(final_entries)} | data-driven KEYWORD_MAP, removed keywords with >40% non-PII rate, same labels with updated KEYWORD_MAP |
+
+
+## KEYWORD_MAP changes per label
+
+| Label | V1/V2 keywords | V4 added | V4 removed |
+|-------|---------------|----------|------------|
+| `email_address` | `email` | `mail` | — |
+| `phone_number` | `phone`, `mobile`, `call` | `contact`, `cell` | — |
+| `account_balance` | `balance`, `net worth` | `amount`, `money`, `currency` | — |
+| `transaction_amount` | `transaction`, `payment`, `charge`, `purchase` | `price`, `cost`, `much`, `fee`, `order` | — |
+| `full_name` | `first/last/full/display name` | `full`, `who`, `author`, `person` | `name` (62.7% non-PII) |
+| `username` | `username`, `user id`, `login name` | `user`, `account`, `sign`, `log`, `password`, `login` | — |
+| `account_number` | `account number`, `card number` | `card`, `iban` | — |
+| `address` | `address`, `street`, `zip`, `postal` | `location`, `country`, `city`, `state`, `destination` | — |
+| `date_of_birth` | `date of birth`, `dob`, `birthday`, `born` | `date`, `age`, `year`, `month` | — |
+| `id_number` | `ssn`, `social security`, `passport` | `social`, `passport`, `code`, `id` | — |
+| `other_sensitive` | — | `gender`, `pin`, `passcode` | — |
+
+**Removed from V4 due to >40% non-PII rate:**
+- `name` (62.7%) — matched "app name", "song name", "comic name"
+- `total` (75.2%) — matched "total chapters", "total slides"
+- `number` (58.2%) — matched "number of likes", "number of slides"
+- `paid` (62.3%) — matched "free or paid"
