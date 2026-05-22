@@ -37,8 +37,7 @@
 |---------|---------|-------|
 | `pii_v1` | 3,645 | Baseline; keywords only. |
 | `pii_v2` | 4,549 | Added validation/test splits. |
-| `pii_v4` | 8,756 | Data-driven Regex (V6) implementation. |
-| `pii_v5` | 9,989 | **Production:** Stratified splitting, pruned labels, biometrics added. |
+| `pii_v5` | 9,989 | Data-driven Regex implementation. Stratified splitting, pruned labels, biometrics added. |
 
 ## Key Regex Changes (V6 Engine)
 | Label | Status | Logic |
