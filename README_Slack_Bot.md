@@ -14,17 +14,17 @@ Slack has become one of the most widely used workplace communication platforms. 
 
 ## How It Works
 
-Privacy Masker is built around a **private DM workflow**. Instead of uploading images directly to a channel, users send them to the Privacy Masker bot in a direct message. The bot processes the image, shows a blurred preview with the detected regions listed, and waits for the user to decide what to do. Only after explicit approval does the blurred image get posted to the intended channel — the original, unblurred image is never seen by anyone else.
+Privacy Masker is built around a private DM workflow. Instead of uploading images directly to a channel, users send them to the Privacy Masker bot in a direct message. The bot processes the image, shows a blurred preview with the detected regions listed, and waits for the user to decide what to do. Only after explicit approval does the blurred image get posted to the intended channel — the original, unblurred image is never seen by anyone else.
 
 The system is built on three components that work together:
 
-**Slack Bot** — built with Slack Bolt for Python. Listens for file uploads in DMs, orchestrates the full workflow, handles user interactions (channel selection, edit/approve/discard), and posts the final blurred image to the chosen channel with the sender's name and original message text preserved.
+**Slack Bot** — built with Slack Bolt for Python. Listens for file uploads in DMs, handles user interactions (channel selection, edit/approve/discard), and posts the final blurred image to the chosen channel with the sender's name and original message text preserved.
 
 **FastAPI Backend** — a REST API running on Google Colab with a GPU. Receives images as base64, runs inference to detect sensitive regions, applies Gaussian blur to each detected region using PIL, and returns the blurred image. Also manages editor sessions for the manual box editing feature.
 
 **Web Editor** — a browser-based canvas tool served from the same backend. When the user wants to add additional blur regions beyond what the model detected, the bot sends them a private link to the editor. The user draws boxes on the original image by clicking and dragging, then confirms. The backend applies the additional blur and the bot posts the result.
 
-The backend is exposed via ngrok — a secure tunnel that gives it a private HTTPS URL. All requests to the backend require a secret API key, so even if someone discovered the URL they could not use the service.
+The backend is exposed via ngrok — a secure tunnel that gives it a private HTTPS URL. All requests to the backend require a secret API key.
 
 ---
 
@@ -135,19 +135,6 @@ Blurred image posted         Draw additional boxes
                              "Shared by @username"
 ```
 
----
-
-## Built With
-
-- **[Slack Bolt for Python](https://slack.dev/bolt-python/)** — Slack app framework. Handles Socket Mode connection, event subscriptions, interactive components (buttons, dropdowns), and file uploads.
-- **[FastAPI](https://fastapi.tiangolo.com/)** — REST API framework for the backend. Serves inference results, manages editor sessions, and hosts the static editor page.
-- **[PIL / Pillow](https://python-pillow.org/)** — Image processing. Applies Gaussian blur to detected regions.
-- **[pyngrok](https://pyngrok.readthedocs.io/)** — Exposes the Colab backend over a secure HTTPS tunnel.
-- **Google Colab** — Provides free GPU compute for model inference.
-- **HTML5 Canvas** — Powers the web-based box editor for drawing additional blur regions.
-
----
-
 ## Slack App Permissions Required
 
 | Scope | Purpose |
@@ -172,3 +159,4 @@ Blurred image posted         Draw additional boxes
 - Unblurred images are only ever seen by the sending user in their private DM with the bot.
 - Images are processed in memory — nothing is stored permanently on disk.
 - The bot only processes images sent in DMs — images uploaded directly to channels are ignored.
+- If ran on local company servers, images with user specified bounding boxes could be stored for further model training for specific company needs. 
