@@ -101,40 +101,6 @@ project/
 └──────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## User Flow
-
-```
-User DMs bot with image
-        │
-        ▼
-Bot scans image
-        │
-        ├── No sensitive info → "Safe to share!" ✅
-        │
-        └── Sensitive info detected
-                │
-                ▼
-        Blurred preview shown in DM
-        Detected regions listed
-                │
-        ┌───────┴────────────────────┐
-        │                            │
-        ▼                            ▼
-Post to channel              Edit boxes
-(select channel)             (open editor)
-        │                            │
-        ▼                            │
-Blurred image posted         Draw additional boxes
-"Shared by @username"        Confirm in editor
-                                     │
-                             Select channel
-                                     │
-                             Blurred image posted
-                             "Shared by @username"
-```
-
 ## Slack App Permissions Required
 
 | Scope | Purpose |
