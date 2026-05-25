@@ -1,4 +1,4 @@
-# Privacy Masker — Team Project
+# Privacy Masker - Team Project
 
 A deep learning pipeline for high-precision PII (Personally Identifiable Information) detection and masking in mobile UI screenshots, with a Slack integration for safely sharing screenshots in workplace channels. Built on the [RICO-ScreenQA](https://huggingface.co/datasets/rootsautomation/RICO-ScreenQA) dataset.
 
@@ -8,7 +8,7 @@ A deep learning pipeline for high-precision PII (Personally Identifiable Informa
 
 ## What it does
 
-Mobile applications routinely expose sensitive personal information (emails, balances, names, addresses) that is unintentionally leaked when users share screenshots. Privacy Masker automatically detects PII regions in screenshots and returns bounding boxes for downstream redaction. The system ships as both a Gradio demo and a production-grade Slack bot that intercepts images sent privately via DM, scans them, and only posts the blurred version to the intended channel — the unblurred image never appears publicly.
+Mobile applications routinely expose sensitive personal information (emails, balances, names, addresses) that is unintentionally leaked when users share screenshots. Privacy Masker automatically detects PII regions in screenshots and returns bounding boxes for downstream redaction. The system ships as both a Gradio demo and a production-grade Slack bot that intercepts images sent privately via DM, scans them, and only posts the blurred version to the intended channel - the unblurred image never appears publicly.
 
 ---
 
@@ -64,7 +64,7 @@ Screens with no PII have `"objects": []` and serve as hard negative examples.
 |---------|--------:|--------|-------|----------|
 | `pii_v1` | 3,645 | train only (baseline) | Broad keyword regex (`email`, `phone`, `name`...). 80/10/10 split added later. ~15% negatives. | [Drive](https://drive.google.com/drive/folders/1uycS4idphBz_cZfWB8aq6zIWZTM0Trv5?usp=share_link) |
 | `pii_v2` | 4,549 | 80/10/10 | Same keyword map as v1; added val + test splits. ~15% negatives. | [Drive](https://drive.google.com/drive/folders/1hGHE_ald1wqY_1g5CTNDwGaovNmWA5VD?usp=share_link) |
-| `pii_v3` | 10,645 | — | Expanded keyword lists; **not uploaded** — too many false positives. | — |
+| `pii_v3` | 10,645 | - | Expanded keyword lists; **not uploaded** - too many false positives. | - |
 | **`pii_v5`** | **9,989** | 80/10/10 stratified | **Final dataset.** Precision-first regex engine, rarest-label stratified split, pruned ambiguous labels, biometrics added. ~12% negatives. | [Drive](https://drive.google.com/drive/folders/1DnbkCIIex6pEyrxMQenOcWaxxL8l7PW-?usp=share_link) |
 
 ### Final Dataset (`pii_v5`) Label Distribution
@@ -82,7 +82,7 @@ Screens with no PII have `"objects": []` and serve as hard negative examples.
 | `account_balance` | 153 | 18 | 19 | P2 |
 | **Total screens** | **7,912** | **989** | **997** | |
 
-**P1** — core PII (identity + contact). **P2** — extended PII (financial, credentials, biometrics).
+**P1** - core PII (identity + contact). **P2** - extended PII (financial, credentials, biometrics).
 
 ### PII Categories & Regex Rules (`pii_v5`)
 
@@ -102,10 +102,10 @@ QA pairs are classified using compiled regex patterns matched against the questi
 
 ### V5 Improvements Over V1/V2
 
-1. **Stratified multi-label splitting — "rarest-label heuristic":** each screen's primary label is the globally rarest PII label it contains; screens are then split 80/10/10 within each primary-label group. Guarantees rare classes (`full_name`, `account_balance`) appear in val/test.
+1. **Stratified multi-label splitting - "rarest-label heuristic":** each screen's primary label is the globally rarest PII label it contains; screens are then split 80/10/10 within each primary-label group. Guarantees rare classes (`full_name`, `account_balance`) appear in val/test.
 2. **Precision-first regex engine:** high-noise keywords like bare `name` and `date` were removed (caused >40% false positives in V1/V2). Only structurally unambiguous terms and bigrams retained.
 3. **Biometric compliance:** `weight` and `height` added to `other_sensitive` for fitness/health app coverage.
-4. **Label pruning:** `account_number` and `id_number` deprecated — no reliable regex signature in QA phrasing, high FP rate.
+4. **Label pruning:** `account_number` and `id_number` deprecated - no reliable regex signature in QA phrasing, high FP rate.
 
 ---
 
@@ -120,13 +120,13 @@ We evaluated **two architectures**; final production uses the two-stage pipeline
 | 1 | **PaddleOCR** (angle-corrected, English) | Extract every text region as `{bbox, text, confidence}`. No fine-tuning. |
 | 2 | **Gemma-4-E4B + LoRA** (4-bit NF4, r=32, α=64) | Classify each OCR region as PII or not via layout-aware prompting. 69.8M trainable params (0.87%). |
 
-**Stage 2 prompt format** — each OCR region rendered as `[index@x,y] "text"` with coordinates normalized to a 1000×1000 grid so the model sees spatial layout as well as content. Model returns a JSON map from tag to PII class.
+**Stage 2 prompt format** - each OCR region rendered as `[index@x,y] "text"` with coordinates normalized to a 1000×1000 grid so the model sees spatial layout as well as content. Model returns a JSON map from tag to PII class.
 
 **Why two stages:** Decouples localization (deterministic, OCR) from classification (semantic, LLM). Eliminates the autoregressive 1-box bias of single-stage VLMs and lets the model label dense screens with 4+ PII fields correctly.
 
 ### Single-Stage VLM Baseline (Reference)
 
-`google/paligemma2-3b-pt-448` in 4-bit NF4 with LoRA on language-model projections only (47.5M trainable params). Detection framed as autoregressive sequence generation (`<loc####>` tokens). Kept as a reference baseline — see `02_train_paligemma.ipynb`.
+`google/paligemma2-3b-pt-448` in 4-bit NF4 with LoRA on language-model projections only (47.5M trainable params). Detection framed as autoregressive sequence generation (`<loc####>` tokens). Kept as a reference baseline - see `02_train_paligemma.ipynb`.
 
 ### Final Results (Two-Stage on `pii_v5` test)
 
@@ -145,7 +145,7 @@ All notebooks read from / write to the same shared folder so that team members c
 MyDrive/VU_DL_Team_Project/
 ├── data/
 │   ├── raw/
-│   │   └── unique_uis.tar.gz             # RICO tarball — upload ONCE
+│   │   └── unique_uis.tar.gz             # RICO tarball - upload ONCE
 │   ├── pii_v1/ pii_v2/ pii_v5/           # curated datasets (M1 drops here)
 │   │   ├── train.jsonl
 │   │   ├── val.jsonl
@@ -165,14 +165,14 @@ MyDrive/VU_DL_Team_Project/
 DATA_SUBDIR = 'pii_v5'   # was 'pii_v1' or 'pii_v2'
 ```
 
-Images are stored as a single `.zip` and unpacked to Colab's local disk at training time — reading hundreds of small files directly from Drive is ~50× slower.
+Images are stored as a single `.zip` and unpacked to Colab's local disk at training time - reading hundreds of small files directly from Drive is ~50× slower.
 
 ---
 
 ## One-Time Setup
 
 1. Create folder `MyDrive/VU_DL_Team_Project/` on Google Drive.
-2. Have M1 register for RICO at [interactionmining.org/rico.html](http://www.interactionmining.org/rico.html) and upload `unique_uis.tar.gz` to `data/raw/`. **Start this early — email approval can take hours.**
+2. Have M1 register for RICO at [interactionmining.org/rico.html](http://www.interactionmining.org/rico.html) and upload `unique_uis.tar.gz` to `data/raw/`. **Start this early - email approval can take hours.**
 3. Accept the Gemma license at [huggingface.co/google/gemma-4-E4B](https://huggingface.co/google/gemma-4-E4B). (And the PaliGemma 2 license if running the baseline.)
 4. Create an HF token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens). In Colab:
 
@@ -196,14 +196,14 @@ Images are stored as a single `.zip` and unpacked to Colab's local disk at train
              │
              ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 2. Stage 1 — OCR layout extraction (M2)                      │
+│ 2. Stage 1 - OCR layout extraction (M2)                      │
 │    PaddleOCR on every screen → {bbox, text, confidence}      │
 │    → ocr_cache/{train,val,test}_ocr.jsonl                    │
 └────────────┬─────────────────────────────────────────────────┘
              │
              ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 3. Stage 2 — LLM classifier training (M2)                    │
+│ 3. Stage 2 - LLM classifier training (M2)                    │
 │    Layout-aware prompt + Gemma-4 LoRA                        │
 │    → outputs/lora_adapters/final/                            │
 └────────────┬─────────────────────────────────────────────────┘
@@ -273,10 +273,10 @@ BOT replies in DM with blurred preview + detected regions list + buttons:
 
 ### Security
 
-- All backend calls require an `x-api-key` secret header — requests without it return 403.
+- All backend calls require an `x-api-key` secret header - requests without it return 403.
 - The backend URL is a private ngrok tunnel that rotates every session; never published.
 - Unblurred images are only ever seen by the sending user in their private DM.
-- Images are processed in memory — nothing persists on disk.
+- Images are processed in memory - nothing persists on disk.
 - The bot ignores images uploaded directly to channels; it only processes DMs.
 - If deployed on company-internal servers, user-corrected boxes could be stored for fine-tuning on company-specific PII patterns.
 
@@ -316,4 +316,4 @@ See `app/app.py` for the full inference + masking pipeline with prompt construct
 
 ## Final Report
 
-See [REPORT.md](./REPORT.md) for the full writeup — architecture comparison, three-iteration result table on both datasets, per-class diagnostics, the `date_of_birth` regression analysis, and limitations / future work.
+See [REPORT.md](./REPORT.md) for the full writeup - architecture comparison, three-iteration result table on both datasets, per-class diagnostics, the `date_of_birth` regression analysis, and limitations / future work.
